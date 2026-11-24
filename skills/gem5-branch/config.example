@@ -25,3 +25,13 @@ RESOURCES_BASE=stable
 # Only needed if a clone has more than one remote owned by GITHUB_USER.
 # GEM5_FORK_REMOTE=origin
 # RESOURCES_FORK_REMOTE=origin
+
+# Only for tools/publish-resources.py (which you run yourself; the skills never
+# publish). The MongoDB URI with write access goes in its own file, readable
+# only by you (chmod 600), never in this file or a repo.
+# RESOURCES_MONGO_URI_FILE=$HOME/.config/gem5-skills/mongo-uri
+# RESOURCES_MONGO_DB=gem5-vision
+# RESOURCES_MONGO_COLLECTION=resources
+# RESOURCES_AZURE_ACCOUNT=gem5dist
+# RESOURCES_AZURE_CONTAINER=dist
+# RESOURCES_AZURE_SUBSCRIPTION=        # the publish stops if az is on another one

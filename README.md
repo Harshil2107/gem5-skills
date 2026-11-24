@@ -21,10 +21,15 @@ words and Claude picks the right one.
 | [`gem5-pr`](skills/gem5-pr/SKILL.md) | Gets a branch ready for a pull request: overlapping PRs and issues upstream, gem5's commit rules and style checks, whether it's already merged, the agreed testing, drafts of the commit messages and PR description, and drafts of replies to review comments. |
 | [`gem5-fix-issue`](skills/gem5-fix-issue/SKILL.md) | Takes a gem5 issue (or a bug you describe) to a PR-ready branch: is it already fixed or taken, reproduce, find the cause, fix with a regression test, test, draft the PR. Uses the skills above. |
 | [`gem5-disk-images`](skills/gem5-disk-images/SKILL.md) | Builds, checks, registers and validates gem5-resources Ubuntu disk images (base, npb, gapbs) for x86, arm and riscv. |
+| [`gem5-resource-json`](skills/gem5-resource-json/SKILL.md) | Makes and checks resources JSON entries for any category (binaries, kernels, disk images, directories, workloads, suites): finds what's new or changed against the database, copies an existing entry's format, computes md5s with gem5's code, writes the upload JSON plus a `file://` copy for testing, and optionally builds and tests the resources. Per-source notes and helpers in `sources/` (asmtest so far). |
 
 **The skills never commit, push, open pull requests, post on GitHub, or
 delete branches, worktrees, images or task folders.** Claude makes the
 changes, tests them and writes drafts; you review, commit and push.
+
+They also never publish resources. Uploading to Azure and inserting into
+the resources MongoDB is done by [`tools/publish-resources.py`](tools/README.md),
+which you run yourself from a terminal (Claude can only run its dry run).
 
 ## Setup
 
@@ -239,6 +244,23 @@ for example *"build and validate the Ubuntu 26.04 riscv npb image"*, or type
 [`gotchas.md`](skills/gem5-disk-images/reference/gotchas.md) first if you're
 adding a new Ubuntu version.
 
+### Add resources to gem5 resources
+
+From a task folder with the gem5-resources PR (and `gem5/`), ask for example
+*"make the resources JSON for the new binaries in this PR"*, or
+*"build the new asmtests in PR 85, test them in gem5, and make the JSON"*.
+Claude lists what's new or changed, asks for the template entry, versions
+and URL folder, writes `resources/<name>.json` and its manifest, and checks
+them. Then you publish:
+
+```sh
+~/gem5-skills/tools/publish-resources.py <task>/resources/<name>.json --gem5 <task>/gem5             # dry run
+~/gem5-skills/tools/publish-resources.py <task>/resources/<name>.json --gem5 <task>/gem5 --publish
+```
+
+See [`tools/README.md`](tools/README.md) for its one-time setup (`az login`,
+pymongo, the MongoDB URI file).
+
 ### Tips
 
 - Give Claude the whole picture in your first message: the goal, the branch,
@@ -260,12 +282,14 @@ overwritten.
 
 ## What's in this repo, and what isn't
 
-This repo holds only the skills (`skills/`), `install.sh` and this README.
+This repo holds only the skills (`skills/`), tools you run by hand (`tools/`),
+`install.sh` and this README.
 Nothing personal goes in it:
 
 | Not in the repo | Where it lives |
 |---|---|
 | your settings | `~/.config/gem5-skills/config` |
+| the MongoDB write URI | a file only you can read, named by `RESOURCES_MONGO_URI_FILE` |
 | task folders, notes, run output | `WORK_DIR` (for example `~/gem5-work/`) |
 | Claude's memory of your projects | `~/.claude/` |
 
