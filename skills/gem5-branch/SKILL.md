@@ -60,6 +60,12 @@ draft a review comment with the diff (`gem5-pr`), or start a new branch.
   `github.com/gem5/gem5-resources`), found by URL, not by remote name,
   because names differ between clones. Never base work on a fork or a lab
   mate's remote, even if it's called `upstream`.
+- Branches are only ever set to push to the user's own fork, never to the
+  main repos. The script sets `remote`, `merge` and `pushRemote` to the fork,
+  and stops before creating anything if there's no fork remote, or if the
+  fork remote's push URL is a main gem5 repo or not under the user's GitHub
+  account. Never work around that, and never push to a main repo remote by
+  hand.
 - Never push, and never delete or reset branches, worktrees or task folders,
   unless the user asks. An existing local branch is reused as it is; tell the
   user how to update it rather than updating it.

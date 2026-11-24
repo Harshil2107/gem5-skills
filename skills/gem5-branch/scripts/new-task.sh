@@ -147,10 +147,30 @@ note() {
     printf -- '%s\n' "$1" >> "$task/notes.md"
 }
 
+# Stop unless remote $2 of clone $1 pushes to the user's own fork: its push
+# URL (which can differ from the fetch URL) must be github.com/$GITHUB_USER/*,
+# and never the main gem5 repos.
+check_fork() {
+    local url owner
+    url=$(normalize "$(git -C "$1" remote get-url --push "$2")")
+    owner=$(echo "$GITHUB_USER" | tr 'A-Z' 'a-z')
+    case "$url" in
+        github.com/gem5/*)
+            echo "Remote $2 pushes to $url, a main gem5 repo, not your fork. Stopping."; exit 1 ;;
+        "github.com/$owner/"*) ;;
+        *)
+            echo "Remote $2 pushes to $url, which isn't under github.com/$GITHUB_USER. Stopping."; exit 1 ;;
+    esac
+}
+
 set_push() {
-    # Make `git push` from branch $2 go to remote $3, branch $4.
+    # Make `git push` from branch $2 go to remote $3 (the fork), branch $4.
+    # pushRemote overrides any remote.pushDefault, so a plain `git push` can't
+    # go to the main repo.
+    check_fork "$1" "$3"
     run git -C "$1" config "branch.$2.remote" "$3"
     run git -C "$1" config "branch.$2.merge" "refs/heads/$4"
+    run git -C "$1" config "branch.$2.pushRemote" "$3"
 }
 
 make_worktree() {
@@ -173,13 +193,20 @@ make_worktree() {
         if git -C "$clone" show-ref --verify --quiet "refs/heads/$branch"; then
             echo "Branch $branch already exists in $clone (use --existing to work on it)."; exit 1
         fi
+        # The branch must push to the fork, so check that before making anything.
+        if [ -z "$fork" ]; then
+            echo "No single remote for github.com/$GITHUB_USER/* in $clone, so the new branch"
+            echo "would have nowhere safe to push. Add your fork, then run this again:"
+            echo "  git -C $clone remote add fork https://github.com/$GITHUB_USER/$(basename "$main_repo").git"
+            echo "(or set the fork remote's name in $config)"
+            exit 1
+        fi
+        check_fork "$clone" "$fork"
         echo "== $name: new branch $branch from $up/$b (github.com/$main_repo)"
         run git -C "$clone" fetch "$up" "+refs/heads/$b:refs/remotes/$up/$b"
         run git -C "$clone" worktree add --no-track -b "$branch" "$sub" "refs/remotes/$up/$b"
-        if [ -n "$fork" ]; then
-            set_push "$clone" "$branch" "$fork" "$branch"
-            push="git push to $fork ($(git -C "$clone" remote get-url "$fork"))"
-        fi
+        set_push "$clone" "$branch" "$fork" "$branch"
+        push="git push to $fork ($(git -C "$clone" remote get-url --push "$fork"))"
         start="from \`$up/$b\`"
         ;;
     pr)

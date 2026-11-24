@@ -19,7 +19,7 @@ words and Claude picks the right one.
 
 | Skill | What it does |
 |---|---|
-| [`gem5-branch`](skills/gem5-branch/SKILL.md) | Starts a piece of work in its own task folder: a new branch from the main gem5 repos (`develop` for gem5, `stable` for gem5-resources), an existing gem5 PR to test or fix, a branch already on your fork, or a worktree you already have. |
+| [`gem5-branch`](skills/gem5-branch/SKILL.md) | Starts a piece of work in its own task folder: a new branch (its code taken from the main gem5 repos' `develop` or `stable`, but the branch itself belongs to your fork and only ever pushes there), an existing gem5 PR to test or fix, a branch already on your fork, or a worktree you already have. |
 | [`gem5-run`](skills/gem5-run/SKILL.md) | Builds gem5 (`build/ALL/gem5.opt` unless you ask for another), starts SE or full-system runs detached, reports pass/crash/running, waits for a run to exit or hit a line like `Hypercall 1`, and compares a run with a baseline, with a finish-time estimate. |
 | [`gem5-debug`](skills/gem5-debug/SKILL.md) | Finds the cause of a simulator bug: image vs gem5, where a run is stuck, tracing only a short window of a long run, pulling binaries out of disk images, and small SE tests run on every CPU model at once. Includes case studies of real gem5 bugs. |
 | [`gem5-testlib`](skills/gem5-testlib/SKILL.md) | Writes and runs gem5 TestLib regression tests: where a new test goes, quick/long/very-long, `gem5_verify_config` with verifiers, running one suite against an existing build, and reading the results. |
@@ -219,9 +219,22 @@ Ask Claude in plain words, for example:
 
 Claude asks for anything missing, shows a dry run, then creates the folder.
 New branches are named `TYPE/[ISSUE-]TOPIC` (`TYPE` is `fix`, `feature`,
-`resources`, `test` or `docs`) and start from upstream `develop` (gem5) or
-`stable` (gem5-resources), never from a fork. `git push` is set to go to your
-fork, but nothing is pushed.
+`resources`, `test` or `docs`).
+
+**Where a new branch comes from, and where it goes:**
+
+| | |
+|---|---|
+| **Its starting code** | the latest `develop` (gem5) or `stable` (gem5-resources) of the main repos, `github.com/gem5/...`, so you start from what's current, never from a fork's possibly stale copy |
+| **Where it lives** | on your machine, until you push it |
+| **Where `git push` sends it** | **your fork only** (`github.com/<you>/...`); then you open a PR from your fork to gem5 as usual |
+
+The branch is never created on, or pushed to, `gem5/gem5` or
+`gem5/gem5-resources`. The script makes sure of this: it sets the branch to
+push to your fork, and stops before creating anything if it can't find your
+fork, or if the fork remote's push address turns out to be a main gem5 repo
+or someone else's account. Nothing is pushed until you run `git push`
+yourself.
 
 You can also start from something that already exists:
 
