@@ -1,0 +1,27 @@
+# Settings for the gem5 skills. Each person keeps their own copy at
+# ~/.config/gem5-skills/config (or the path in $GEM5_SKILLS_CONFIG).
+
+# Your GitHub username. Your fork is the remote owned by this user.
+GITHUB_USER=your-github-username
+
+# Your main clones. Worktrees are made from these. Each needs a remote that
+# points at the main repo (github.com/gem5/gem5 or github.com/gem5/gem5-resources)
+# and one that points at your fork; the remote names don't matter.
+GEM5_CLONE=$HOME/gem5
+RESOURCES_CLONE=$HOME/gem5-resources
+
+# Parent folder for task folders.
+WORK_DIR=$HOME/gem5-work
+
+# Branches that new work starts from.
+GEM5_BASE=develop
+RESOURCES_BASE=stable
+
+# Optional: one folder for TestLib's test resources (disk images, kernels),
+# shared by all your worktrees, so each is downloaded once instead of per
+# worktree (several GB). Used by the gem5-testlib skill as --bin-path.
+# TESTLIB_BIN_PATH=$HOME/gem5-test-resources
+
+# Only needed if a clone has more than one remote owned by GITHUB_USER.
+# GEM5_FORK_REMOTE=origin
+# RESOURCES_FORK_REMOTE=origin
