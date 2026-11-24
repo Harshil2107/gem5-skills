@@ -10,6 +10,11 @@ full instructions only when your request matches it, or when you type
 `/<skill-name>`. You don't need to remember the skill names: ask in plain
 words and Claude picks the right one.
 
+> **Using Codex, Antigravity or another coding agent?** The scripts work with
+> any agent, and the skill files are plain markdown. See
+> [Using another coding agent](#using-another-coding-agent) for the extra
+> setup and what to watch out for.
+
 ## Skills
 
 | Skill | What it does |
@@ -87,6 +92,60 @@ GitHub.
 
    It should show both worktrees starting from `github.com/gem5/...` and
    pushing to your fork.
+
+## Using another coding agent
+
+These skills are written and tested with Claude Code, but nothing in them
+depends on it: the scripts are plain bash and Python, and each `SKILL.md` is
+markdown instructions in the common skills format (a folder with a
+`SKILL.md` that starts with `name` and `description`). Other agents are
+untested so far; tell us what breaks.
+
+**Setup.** Do steps 1 and 3 above as written (clones and the settings file,
+which every agent shares). Instead of `install.sh` (step 2, which links into
+`~/.claude/skills/`), make the skills visible to your agent:
+
+- **If it reads skill folders** (recent Codex versions read
+  `~/.codex/skills/`; check your agent's docs for its folder), link them
+  there:
+
+  ```sh
+  git clone https://github.com/Harshil2107/gem5-skills.git ~/gem5-skills
+  mkdir -p ~/.codex/skills && ln -s ~/gem5-skills/skills/* ~/.codex/skills/
+  mkdir -p ~/.config/gem5-skills
+  cp ~/gem5-skills/skills/gem5-branch/config.example ~/.config/gem5-skills/config
+  ```
+
+- **If it doesn't** (or the skills don't show up), point its instructions
+  file at them, for example in `AGENTS.md` for Codex or in the agent's rules
+  for Antigravity: *"For gem5 work, follow the skills in ~/gem5-skills/skills/:
+  read a skill's SKILL.md before doing that kind of task."* You can also name
+  the skill in your request: *"follow ~/gem5-skills/skills/gem5-run/SKILL.md
+  and build gem5"*.
+
+**What to watch out for:**
+
+- **Commit, push and publish rules are only written instructions** in each
+  `SKILL.md`. Claude Code follows them; check that your agent does too, and
+  set it to ask before running commands or committing (turn off any
+  auto-commit or auto-run mode while you get used to it).
+- **Long jobs.** Builds take up to an hour and full-system runs several
+  hours. `run.sh` already starts simulations detached; ask the agent to start
+  `build.sh` and `testlib.sh run` in the background too, or run them yourself,
+  so the agent doesn't sit on a command until it times out. Check on them
+  later with `status.sh` and `testlib.sh summary`.
+- **Publishing resources.** `tools/publish-resources.py --publish` refuses to
+  run without a terminal, but the real safeguard is that the agent can't
+  reach your credentials: don't give it read access to
+  `~/.config/gem5-skills/mongo-uri`, and block `--publish` in your agent's
+  command rules if it has them (the Claude Code rules are in
+  [`tools/README.md`](tools/README.md)).
+- **Claude-specific parts of this README** don't apply: Claude's memory, its
+  permission settings, `/skill-name` commands. `notes.md` in each task folder
+  works with any agent: ask it to read `notes.md` first when you continue a
+  task.
+- **Start the agent inside the task folder**, as below, so it only sees what
+  the task needs.
 
 ## How it works: task folders
 

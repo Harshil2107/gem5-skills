@@ -73,9 +73,25 @@ public API (the real collection), whatever the collection setting is.
 ### Keeping Claude away from it
 
 The skills never run `--publish`, and the tool refuses to run without a
-terminal. Claude's shell has no terminal. To be stricter still, add a deny
-rule to `~/.claude/settings.json`:
+terminal. Claude's shell has no terminal. But the terminal check only stops a
+careless call, so also keep Claude away from the command and the write-access
+credentials, with deny rules in `~/.claude/settings.json` (merge them into
+any `permissions` you already have):
 
 ```json
-{ "permissions": { "deny": ["Bash(*publish-resources.py*--publish*)"] } }
+{
+  "permissions": {
+    "deny": [
+      "Bash(*publish-resources.py*--publish*)",
+      "Bash(*mongo-uri*)",
+      "Read(~/.config/gem5-skills/mongo-uri)",
+      "Edit(~/.config/gem5-skills/mongo-uri)"
+    ]
+  }
+}
 ```
+
+The first blocks the real publish; the others stop Claude from reading or
+changing the MongoDB URI file, by a file tool or a shell command. Check them
+under `/permissions` in Claude Code. With another agent, set the same limits
+in its own command and file rules.
